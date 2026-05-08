@@ -14,7 +14,7 @@ export default function ModelsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [modelToEdit, setModelToEdit] = useState<AIModel | null>(null);
   
-  // New state for the Delete Modal
+  //state for the Delete Modal
   const [modelToDelete, setModelToDelete] = useState<AIModel | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 

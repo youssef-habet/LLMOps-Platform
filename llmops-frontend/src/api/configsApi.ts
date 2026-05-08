@@ -1,8 +1,4 @@
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: 'http://localhost:8000/api',
-});
+import apiClient from './axiosClient';
 
 export interface Config {
   id: string;

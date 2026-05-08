@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from app.core.auth import get_current_user
 from app.core.database import supabase
 from app.models.dataset import DatasetResponse
 import uuid
@@ -9,19 +10,30 @@ from io import StringIO
 router = APIRouter(prefix="/api/datasets", tags=["Datasets"])
 
 @router.get("", response_model=list[DatasetResponse])
-async def get_datasets():
+async def get_datasets(current_user: dict[str, str] = Depends(get_current_user)):
     try:
-        response = supabase.table("datasets").select("*").order("created_at", desc=True).execute()
+        response = (
+            supabase.table("datasets")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .order("created_at", desc=True)
+            .execute()
+        )
         return response.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("", response_model=DatasetResponse)
-async def upload_dataset(name: str = Form(...), task_type: str = Form(...), file: UploadFile = File(...)):
+async def upload_dataset(
+    name: str = Form(...),
+    task_type: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: dict[str, str] = Depends(get_current_user),
+):
     try:
         file_bytes = await file.read()
         file_ext = file.filename.split('.')[-1].lower()
-        storage_path = f"{task_type}/{uuid.uuid4()}.{file_ext}"
+        storage_path = f"{current_user['id']}/{task_type}/{uuid.uuid4()}.{file_ext}"
         
         file_size_bytes = len(file_bytes)
         
@@ -30,6 +42,7 @@ async def upload_dataset(name: str = Form(...), task_type: str = Form(...), file
         )
         
         db_response = supabase.table("datasets").insert({
+            "user_id": current_user["id"],
             "name": name, 
             "task_type": task_type, 
             "file_path": storage_path, 
@@ -43,9 +56,15 @@ async def upload_dataset(name: str = Form(...), task_type: str = Form(...), file
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{dataset_id}")
-async def delete_dataset(dataset_id: str):
+async def delete_dataset(dataset_id: str, current_user: dict[str, str] = Depends(get_current_user)):
     try:
-        db_res = supabase.table("datasets").select("file_path").eq("id", dataset_id).execute()
+        db_res = (
+            supabase.table("datasets")
+            .select("file_path")
+            .eq("id", dataset_id)
+            .eq("user_id", current_user["id"])
+            .execute()
+        )
         if not db_res.data:
             raise HTTPException(status_code=404, detail="Dataset not found")
             
@@ -53,13 +72,21 @@ async def delete_dataset(dataset_id: str):
         supabase.storage.from_("datasets").remove([file_path])
         supabase.table("datasets").delete().eq("id", dataset_id).execute()
         return {"message": "Dataset deleted successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{dataset_id}/preview")
-async def preview_dataset(dataset_id: str):
+async def preview_dataset(dataset_id: str, current_user: dict[str, str] = Depends(get_current_user)):
     try:
-        db_res = supabase.table("datasets").select("file_path, file_ext").eq("id", dataset_id).execute()
+        db_res = (
+            supabase.table("datasets")
+            .select("file_path, file_ext")
+            .eq("id", dataset_id)
+            .eq("user_id", current_user["id"])
+            .execute()
+        )
         if not db_res.data:
             raise HTTPException(status_code=404, detail="Dataset not found")
             
@@ -86,17 +113,27 @@ async def preview_dataset(dataset_id: str):
                 rows.append(row)
             return {"type": "csv", "columns": reader.fieldnames, "rows": rows}
             
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{dataset_id}/download")
-async def get_download_url(dataset_id: str):
+async def get_download_url(dataset_id: str, current_user: dict[str, str] = Depends(get_current_user)):
     try:
-        db_res = supabase.table("datasets").select("file_path").eq("id", dataset_id).execute()
+        db_res = (
+            supabase.table("datasets")
+            .select("file_path")
+            .eq("id", dataset_id)
+            .eq("user_id", current_user["id"])
+            .execute()
+        )
         if not db_res.data:
             raise HTTPException(status_code=404, detail="Dataset not found")
             
         url = supabase.storage.from_("datasets").get_public_url(db_res.data[0]["file_path"])
         return {"url": url}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

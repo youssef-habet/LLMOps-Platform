@@ -1,16 +1,13 @@
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: 'http://localhost:8000/api',
-});
+import apiClient from './axiosClient';
 
 export interface Metric {
   id: string;
   name: string;
-  metric_type: string;
-  description: string;
-  config: Record<string, any>; // JSONB object
-  created_at: string;
+  category: 'nlp' | 'reliability' | 'custom';
+  method_name: string;
+  description?: string;
+  custom_prompt?: string;
+  created_at?: string;
 }
 
 export const metricsApi = {
@@ -19,8 +16,13 @@ export const metricsApi = {
     return response.data;
   },
 
-  create: async (metricData: Omit<Metric, 'id' | 'created_at'>): Promise<Metric> => {
-    const response = await apiClient.post('/metrics', metricData);
+  createCustom: async (data: { name: string; description: string; custom_prompt: string }): Promise<Metric> => {
+    const response = await apiClient.post('/metrics', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: { name: string; description: string; custom_prompt: string }): Promise<Metric> => {
+    const response = await apiClient.put(`/metrics/${id}`, data);
     return response.data;
   },
 

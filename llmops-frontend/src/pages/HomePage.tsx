@@ -1,94 +1,105 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../auth/useAuth';
 
 export default function HomePage() {
+  const { isAuthenticated } = useAuth();
+  const appTarget = isAuthenticated ? '/dashboard' : '/login';
+  const experimentTarget = isAuthenticated ? '/experiments' : '/login';
+
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      
-      {/* Get Started Banner */}
-      <div className="space-y-4">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Get started</h1>
-        
-        <div className="relative overflow-hidden rounded-2xl bg-gray-900 dark:bg-[#212121] border border-gray-200 dark:border-white/10">
-          {/* Subtle gradient background effect to match OpenAI */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/10 to-yellow-500/10 pointer-events-none"></div>
-          
-          <div className="relative p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-6">
-              <div className="flex items-center text-gray-200">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mr-4">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
-                </div>
-                <span className="font-medium text-sm">Create API keys</span>
+    <div className="min-h-screen overflow-hidden bg-black text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(168,85,247,0.18),transparent_28%),radial-gradient(circle_at_78%_28%,rgba(16,185,129,0.12),transparent_24%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_42%)]" />
+      <div className="landing-grid absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:72px_72px]" />
+
+      <header className="relative z-10 flex h-20 items-center justify-between px-6 md:px-10">
+        <Link to="/" className="text-lg font-bold tracking-tight">
+          LLMOps Platform
+        </Link>
+
+        <nav className="flex items-center gap-3">
+          {isAuthenticated ? (
+            <Link
+              to="/account"
+              className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+            >
+              Account
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+              >
+                Login
+              </Link>
+              <Link
+                to="/login"
+                state={{ mode: 'register' }}
+                className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-gray-200"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
+        </nav>
+      </header>
+
+      <main className="relative z-10 flex min-h-[calc(100vh-80px)] items-center justify-center px-6 pb-16">
+        <section className="mx-auto flex max-w-5xl flex-col items-center text-center">
+          <div className="landing-reveal mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-gray-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Secure LLM evaluation workspace
+          </div>
+
+          <h1 className="landing-reveal max-w-4xl text-5xl font-semibold tracking-tight md:text-7xl" style={{ animationDelay: '120ms' }}>
+            Manage the full lifecycle of your LLM systems.
+          </h1>
+
+          <p className="landing-reveal mt-6 max-w-2xl text-sm leading-6 text-gray-400 md:text-base md:leading-7" style={{ animationDelay: '220ms' }}>
+            Register models, upload datasets, define judge metrics, run evaluations, and compare experiments inside one focused operational platform.
+          </p>
+
+          <div className="landing-reveal mt-10 flex flex-col gap-3 sm:flex-row" style={{ animationDelay: '320ms' }}>
+            <Link
+              to={appTarget}
+              state={isAuthenticated ? undefined : { from: { pathname: '/dashboard' } }}
+              className="inline-flex min-w-48 items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-medium text-black shadow-sm transition-colors hover:bg-gray-200"
+            >
+              Go to application
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+            <Link
+              to={experimentTarget}
+              state={isAuthenticated ? undefined : { from: { pathname: '/experiments' } }}
+              className="inline-flex min-w-48 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
+            >
+              Start an experiment
+            </Link>
+          </div>
+
+          <div className="landing-reveal landing-float mt-12 hidden w-full max-w-3xl rounded-2xl border border-white/10 bg-[#111]/80 p-4 text-left shadow-2xl md:block" style={{ animationDelay: '420ms' }}>
+            <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40 p-4">
+              <div className="landing-scan absolute inset-y-0 w-28 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              <div className="grid grid-cols-3 gap-3">
+                {['Model registry', 'Dataset control', 'Evaluation runs'].map((label, index) => (
+                  <div key={label} className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-xs text-gray-400">{label}</span>
+                      <span className={`h-2 w-2 rounded-full ${index === 0 ? 'bg-blue-400' : index === 1 ? 'bg-purple-400' : 'bg-emerald-400'}`} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-2 rounded bg-white/10" />
+                      <div className="h-2 w-2/3 rounded bg-white/5" />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center text-gray-200">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mr-4">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <span className="font-medium text-sm">Add credits</span>
-              </div>
-              <div className="flex items-center text-gray-200">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mr-4">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                </div>
-                <span className="font-medium text-sm">Build your prompt</span>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-xl text-sm transition-colors border border-white/10">
-                Developer quickstart ↗
-              </button>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Home Metrics Section */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Home</h2>
-          <button className="text-sm border border-gray-300 dark:border-white/20 dark:text-gray-300 px-4 py-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-            Create API keys
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-0 rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden bg-white dark:bg-[#212121]">
-          {/* Card 1 */}
-          <div className="p-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-white/10 flex flex-col justify-between min-h-[140px]">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Total tokens &gt;</div>
-            <div className="text-3xl font-semibold text-gray-900 dark:text-white">0</div>
-            <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 mt-4 rounded-full overflow-hidden">
-              <div className="w-0 h-full bg-pink-500"></div>
-            </div>
-          </div>
-          
-          {/* Card 2 */}
-          <div className="p-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-white/10 flex flex-col justify-between min-h-[140px]">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Responses and Chat... &gt;</div>
-            <div className="text-3xl font-semibold text-gray-900 dark:text-white">0</div>
-            <div className="w-full border-t border-dashed border-gray-300 dark:border-gray-600 mt-4"></div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="p-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-white/10 flex flex-col justify-between min-h-[140px]">
-            <div className="text-sm text-gray-500 dark:text-gray-400">April spend</div>
-            <div className="text-3xl font-semibold text-gray-900 dark:text-white">$0.00</div>
-            <a href="#" className="text-sm text-gray-500 dark:text-gray-400 underline mt-4 hover:text-gray-300">Manage spend alerts</a>
-          </div>
-
-          {/* Card 4 (Highlighted) */}
-          <div className="p-6 bg-yellow-50 dark:bg-[#3d3314] flex flex-col justify-between min-h-[140px]">
-            <div className="text-sm text-yellow-800 dark:text-yellow-500 flex items-center">
-              Credit remaining
-              <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            </div>
-            <div className="text-3xl font-semibold text-gray-900 dark:text-white">$0.00</div>
-            <button className="mt-4 bg-yellow-500 hover:bg-yellow-400 text-black text-sm font-medium py-1.5 px-4 rounded transition-colors w-fit">
-              Add credits
-            </button>
-          </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

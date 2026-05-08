@@ -25,6 +25,7 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
   const [apiKey, setApiKey] = useState('');
 
   // Params State
+  const [systemPrompt, setSystemPrompt] = useState(''); // <-- NEW STATE
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
   const [topP, setTopP] = useState(1.0);
@@ -47,11 +48,12 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
         .catch(() => setError("Failed to load available models."))
         .finally(() => setIsLoadingProviders(false));
 
-      // Reset
+      // Reset Form
       setName('');
       setMode('standard');
       setBaseUrl('');
       setApiKey('');
+      setSystemPrompt('');
       setTemperature(0.7);
       setMaxTokens(1000);
       setTopP(1.0);
@@ -65,7 +67,6 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
       setProvider(firstProvider);
       setVersion(supportedProviders[firstProvider][0]);
     } else if (mode === 'custom') {
-      // Force the provider to "Custom" so the backend knows to use the Universal Router
       setProvider('Custom');
       setVersion('');
     }
@@ -92,8 +93,9 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
         temperature, 
         max_tokens: maxTokens, 
         top_p: topP,
-        endpoint_url: mode === 'custom' ? baseUrl : undefined, // SEND TO DB
-        api_key_ref: mode === 'custom' ? apiKey : undefined    // SEND TO DB
+        endpoint_url: mode === 'custom' ? baseUrl : undefined,
+        api_key_ref: mode === 'custom' ? apiKey : undefined,
+        system_prompt: systemPrompt // <-- SEND TO BACKEND
       });
       dispatch(addModel(newModel));
       onClose();
@@ -109,7 +111,7 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
       <div className="animate-slide-up bg-[#171717] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
         
         <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-black/20">
-          <h2 className="text-lg font-semibold text-white">Add Model to Workspace</h2>
+          <h2 className="text-lg font-semibold text-white">Add Model Configuration</h2>
           <button onClick={onClose} disabled={isSubmitting} className="text-gray-500 hover:text-white transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -121,7 +123,6 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
           <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
             {error && <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm px-3 py-2 rounded-lg">{error}</div>}
 
-            {/* Creation Mode Toggle */}
             <div className="flex p-1 bg-black/40 rounded-lg border border-white/5">
               <button type="button" onClick={() => setMode('standard')} className={`flex-1 text-sm py-1.5 rounded-md transition-all font-medium ${mode === 'standard' ? 'bg-[#2a2a2a] text-white shadow-sm border border-white/10' : 'text-gray-500 hover:text-gray-300'}`}>
                 Standard
@@ -134,10 +135,9 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1.5">Display Name</label>
-                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} disabled={isSubmitting} placeholder="e.g. My Local Llama 3" className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30" />
+                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} disabled={isSubmitting} placeholder="e.g. My Local Llama 3 (Strict)" className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-white/30" />
               </div>
 
-              {/* Standard Mode Inputs */}
               {mode === 'standard' ? (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -154,7 +154,6 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
                   </div>
                 </div>
               ) : (
-                /* Custom Mode Inputs */
                 <div className="space-y-4 p-4 bg-blue-500/5 border border-blue-500/10 rounded-xl">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">Base URL</label>
@@ -162,7 +161,7 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">Model ID (Exact String)</label>
-                    <input type="text" required value={version} onChange={(e) => setVersion(e.target.value)} disabled={isSubmitting} placeholder="llama3-8b" className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-white/30 font-mono" />
+                    <input type="text" required value={version} onChange={(e) => setVersion(e.target.value)} disabled={isSubmitting} placeholder="llama3" className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-white/30 font-mono" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">API Key <span className="text-gray-500 font-normal">(Optional for Local)</span></label>
@@ -170,11 +169,24 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
                   </div>
                 </div>
               )}
+
+              {/* NEW: System Prompt Text Area */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">System Prompt <span className="text-gray-500 font-normal">(Optional)</span></label>
+                <textarea 
+                  value={systemPrompt} 
+                  onChange={(e) => setSystemPrompt(e.target.value)} 
+                  disabled={isSubmitting} 
+                  rows={3}
+                  placeholder="e.g. You are a strict data-extraction bot. Reply with ONLY the exact answer." 
+                  className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-white/30 resize-none font-mono" 
+                />
+              </div>
+
             </div>
 
             <hr className="border-white/10" />
 
-            {/* Runtime Parameters */}
             <div className="space-y-5">
               <div>
                 <div className="flex justify-between mb-1">
@@ -201,7 +213,7 @@ export default function AddModelModal({ isOpen, onClose }: AddModelModalProps) {
             <div className="pt-4 flex justify-end gap-3 shrink-0">
               <button type="button" onClick={onClose} disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white">Cancel</button>
               <button type="submit" disabled={isSubmitting} className="bg-white text-black hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-medium min-w-[120px] flex justify-center">
-                {isSubmitting ? 'Saving...' : 'Add Model'}
+                {isSubmitting ? 'Saving...' : 'Add Config'}
               </button>
             </div>
           </form>

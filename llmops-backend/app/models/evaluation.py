@@ -5,7 +5,7 @@ class EvaluationCreate(BaseModel):
     name: str
     model_id: str
     dataset_id: str
-    metrics: List[str] # Array of metric IDs
+    metrics: List[str]
 
 class EvaluationResponse(BaseModel):
     id: str

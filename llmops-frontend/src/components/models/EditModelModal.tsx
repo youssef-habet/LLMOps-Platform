@@ -13,8 +13,7 @@ export default function EditModelModal({ model, isOpen, onClose }: EditModelModa
   const dispatch = useAppDispatch();
   
   const [name, setName] = useState('');
-  const [provider, setProvider] = useState('');
-  const [version, setVersion] = useState('');
+  const [systemPrompt, setSystemPrompt] = useState(''); // <-- NEW STATE
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
   const [topP, setTopP] = useState(1.0);
@@ -25,8 +24,7 @@ export default function EditModelModal({ model, isOpen, onClose }: EditModelModa
   useEffect(() => {
     if (model && isOpen) {
       setName(model.name);
-      setProvider(model.provider);
-      setVersion(model.version);
+      setSystemPrompt(model.system_prompt || ''); // <-- LOAD EXISTING PROMPT
       setTemperature(model.temperature ?? 0.7);
       setMaxTokens(model.max_tokens ?? 1000);
       setTopP(model.top_p ?? 1.0);
@@ -43,7 +41,13 @@ export default function EditModelModal({ model, isOpen, onClose }: EditModelModa
     
     try {
       const updatedModel = await modelsApi.update(model.id, { 
-        name, provider, version, temperature, max_tokens: maxTokens, top_p: topP 
+        name, 
+        provider: model.provider, 
+        version: model.version, 
+        temperature, 
+        max_tokens: maxTokens, 
+        top_p: topP,
+        system_prompt: systemPrompt // <-- SEND UPDATED PROMPT
       });
       dispatch(updateModel(updatedModel));
       onClose();
@@ -59,7 +63,7 @@ export default function EditModelModal({ model, isOpen, onClose }: EditModelModa
       <div className="animate-slide-up bg-[#171717] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
         
         <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-black/20">
-          <h2 className="text-lg font-semibold text-white">Edit Parameters</h2>
+          <h2 className="text-lg font-semibold text-white">Edit Configuration</h2>
           <button onClick={onClose} disabled={isSubmitting} className="text-gray-500 hover:text-white transition-colors">
              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -77,14 +81,26 @@ export default function EditModelModal({ model, isOpen, onClose }: EditModelModa
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1.5">Provider</label>
-                <input type="text" value={provider} disabled className="w-full bg-white/5 border border-white/5 rounded-lg px-3 py-2 text-gray-500 cursor-not-allowed" />
+                <input type="text" value={model.provider} disabled className="w-full bg-white/5 border border-white/5 rounded-lg px-3 py-2 text-gray-500 cursor-not-allowed" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1.5">Version</label>
-                <input type="text" value={version} disabled className="w-full bg-white/5 border border-white/5 rounded-lg px-3 py-2 text-gray-500 font-mono text-sm cursor-not-allowed" />
+                <input type="text" value={model.version} disabled className="w-full bg-white/5 border border-white/5 rounded-lg px-3 py-2 text-gray-500 font-mono text-sm cursor-not-allowed" />
               </div>
             </div>
-            <p className="text-[11px] text-gray-500 italic mt-1">Provider and version cannot be changed after creation.</p>
+
+            {/* NEW: System Prompt Text Area */}
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1.5">System Prompt</label>
+              <textarea 
+                value={systemPrompt} 
+                onChange={(e) => setSystemPrompt(e.target.value)} 
+                disabled={isSubmitting} 
+                rows={4}
+                placeholder="Leave blank for default behavior..." 
+                className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-white/30 resize-none font-mono" 
+              />
+            </div>
           </div>
 
           <hr className="border-white/10" />

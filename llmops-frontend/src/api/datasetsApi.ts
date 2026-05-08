@@ -1,8 +1,4 @@
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: 'http://localhost:8000/api',
-});
+import apiClient from './axiosClient';
 
 export interface Dataset {
   id: string;
@@ -33,7 +29,7 @@ export const datasetsApi = {
     await apiClient.delete(`/datasets/${id}`);
   },
 
-  getPreview: async (id: string): Promise<any> => {
+  getPreview: async (id: string): Promise<unknown> => {
     const response = await apiClient.get(`/datasets/${id}/preview`);
     return response.data;
   },

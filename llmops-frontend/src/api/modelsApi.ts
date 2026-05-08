@@ -1,8 +1,4 @@
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: 'http://localhost:8000/api',
-});
+import apiClient from './axiosClient';
 
 export interface AIModel {
   id: string;
@@ -12,6 +8,7 @@ export interface AIModel {
   temperature: number;
   max_tokens: number;
   top_p: number;
+  system_prompt?: string;
   endpoint_url?: string; 
   api_key_ref?: string; 
   created_at: string;
